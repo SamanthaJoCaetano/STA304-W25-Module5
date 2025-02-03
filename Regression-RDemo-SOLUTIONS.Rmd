@@ -1,7 +1,7 @@
 ---
 title: "Linear & Logistic Regression - Answers"
 author: "Samantha-Jo Caetano"
-date: "October 3, 2023"
+date: "February 4, 2025"
 output: pdf_document
 ---
 
@@ -33,22 +33,67 @@ head(starwars)
 
 ```
 
-Let's start by playing around with some SRS ratio estimation. Use the `svyglm()` function in the `survey` library to run a ratio estimation of mass given height. Assume it was a Simple Random Sample and use the finite population correction with $N=200$.
+We will be working with `mass`, and `height` throughout this class, so let's remove the NAs. Additionally, we will be working with `species`, let's categorize species to be `human`, `droid` or `other`.
+
+```{r}
+summary(starwars$mass)
+summary(starwars$height)
+table(starwars$species)
+
+starwars_clean <- starwars %>% 
+  filter(!is.na(mass)) %>% 
+  filter(!is.na(height)) %>%
+  mutate(species_clean = case_when(
+    species == "Human" ~ "human",
+    species == "Droid" ~ "droid",
+    species != "Human" | species !="Droid" ~ "other")) %>% 
+  filter(!is.na(species_clean))
+
+n=nrow(starwars_clean)
+```
+
+
+
+Let's start by playing around with some SRS ratio estimation. Use the `svymean()` function in the `survey` library to run an estimation of the mean mass of characters. Assume it was a Simple Random Sample and use the finite population correction with $N=200$.
 
 ```{r}
 #install.packages("survey")
 library(survey)
+
 ## Using the Survey Library
 N=200
-n=nrow(starwars)
 
 my.design <- svydesign(id=~1,
-                       data=starwars,
+                       data=starwars_clean,
                        fpc=rep(N, n))
-  
+
+svymean(~mass, my.design) 
+
+## Check
+mean(starwars_clean$mass)
+var(starwars_clean$mass)
+sqrt((1-n/N)*var(starwars_clean$mass)/n)
+
+```
+Additionally, we can use `confint()` to calculate the confidence interval:
+
+```{r}
+confint(svymean(~mass, my.design)) 
+```
+Additionally, we can use `confint()` to calculate the confidence interval:
+
+```{r}
+confint(svymean(~mass, my.design)) 
+```
+
+
+Use the `svyratio()` function in the `survey` library to run a ratio estimation of mass given height. Assume it was a Simple Random Sample and use the finite population correction with $N=200$.
+
+```{r}
+
 svyratio(~mass, ~height, design=my.design)
 
-svyratio(~mass, ~height, design=my.design, na.rm=TRUE)
+confint(svyratio(~mass, ~height, design=my.design))
 
 ```
 
