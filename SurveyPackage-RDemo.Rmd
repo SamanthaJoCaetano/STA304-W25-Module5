@@ -107,10 +107,10 @@ Let's try taking this a step further playing around with some Stratified random 
 ```{r}
 table(starwars_clean$species_clean)
 
-# In the sample there are 20 humans and 36 other species.
+# In the sample there are 4 droids, 20 humans and 32 other species.
 
-## Need to create a weight variable for 8% and then a second variable that spreads the weight amongst the sample.
-
+# Need to include fpc variable (with pop size for each strata)
+# Need to include a weight variable (with pop/samp size for each strata)
 starwars_clean <- starwars_clean %>% 
   mutate(pop_fpc = case_when(species_clean=="droid" ~ 16,
                              species_clean=="human" ~ 80,
@@ -129,6 +129,38 @@ strata.design <- svydesign(id=~1,
 svymean(~mass, design=strata.design)
 confint(svymean(~mass, design=strata.design))
 ```
+Let's check this calculation by hand. Recall for stratified sampling CI:
+
+For $\mu$: $\bar{y}_{st} \pm z_{\alpha/2} \sqrt{\sum_{h=1}^HW_h^2(1-\frac{n_h}{N_h}) s^2_h/n_h}$
+
+Note: $\bar{y}_{st} = \sum_{h=1}^{H}W_h\bar{y}_h$
+
+Note: $W_h = \frac{N_h}{N}$
+
+
+```{r}
+## Checking "by hand"
+starwars_clean %>% 
+  group_by(species_clean) %>% 
+  summarize(n=n(),
+            ybar=mean(mass),
+            s2 = var(mass))
+
+## Running the calculation:
+nh = c(4, 20, 32)
+Nh = c(16, 80, 128)
+W = Nh/N
+ybar = c(69.75, 81.31, 112.1875)
+s2 = c(2604.2500, 373.7325, 52661.8708) 
+
+ybar_str = sum(W*ybar)
+SE_ybar = sqrt( sum(W^2*(1-nh/Nh)*s2/nh) )
+
+ybar_str
+SE_ybar
+```
+
+
 
 ### Task 1: Create a Simple Linear Model to predict mass
 
