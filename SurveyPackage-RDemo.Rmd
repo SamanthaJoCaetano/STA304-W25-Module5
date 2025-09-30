@@ -89,13 +89,6 @@ interval:
 confint(svymean(~mass, my.design)) 
 ```
 
-Additionally, we can use `confint()` to calculate the confidence
-interval:
-
-```{r}
-confint(svymean(~mass, my.design)) 
-```
-
 Use the `svyratio()` function in the `survey` library to run a ratio
 estimation of mass given height. Assume it was a Simple Random Sample
 and use the finite population correction with $N=224$.
@@ -110,15 +103,16 @@ confint(svyratio(~mass, ~height, design=my.design))
 
 Let's try taking this a step further playing around with some Stratified
 random sampling ratio estimation. Use the `svymean()` function in the
-`survey` library to run a ratio estimation of mass given height. Assume
-the study instead collected the data by stratifying by species, where in
-the population there 16 droids, 80 humans and 128 other species. Use the
+`survey` library to run an estimation of the mean mass. Assume the study
+instead collected the data by stratifying by species, where in the
+population there 16 droids, 80 humans and 128 other species. Use the
 finite population correction with $N=224$ to estimate the mean mass.
 
 ```{r}
 table(starwars_clean$species_clean)
 
 # In the sample there are 4 droids, 20 humans and 32 other species.
+# In the population (text above) there are 16 droids, 80 humans and 128 other species.
 
 # Need to include fpc variable (with pop size for each strata)
 # Need to include a weight variable (with pop/samp size for each strata)
